@@ -1,4 +1,10 @@
-import { SUI_CLOCK_OBJECT_ID, SuiAddress, TransactionBlock } from '@mysten/sui.js';
+import {
+  JsonRpcProvider,
+  SUI_CLOCK_OBJECT_ID,
+  SuiAddress,
+  SuiTransactionBlockResponse,
+  TransactionBlock,
+} from '@mysten/sui.js';
 import { Base } from './base';
 import Decimal from 'decimal.js';
 import { Pool } from './pool';
@@ -19,13 +25,25 @@ export declare module Trade {
     amount: Decimal.Value;
     amountThreshold: Decimal.Value;
     exactIn: boolean;
+    signAndExecute: (
+      txb: TransactionBlock,
+      provider: JsonRpcProvider,
+    ) => Promise<SuiTransactionBlockResponse>;
   }
 }
 
 export class Trade extends Base {
   async swap(options: Trade.SwapOptions) {
-    const { pools, priceLimit, coins, address, amount, amountThreshold, exactIn } =
-      options;
+    const {
+      pools,
+      priceLimit,
+      coins,
+      address,
+      amount,
+      amountThreshold,
+      exactIn,
+      signAndExecute,
+    } = options;
     const contract = await this.contract.getConfig();
     const [coinTypeA, coinTypeB] = coins;
     const coinA = await this.coin.getMetadata(coinTypeA);
@@ -56,6 +74,8 @@ export class Trade extends Base {
         txb.object(contract.Versioned),
       ],
     });
+
+    return signAndExecute(txb, this.provider);
   }
 
   protected getFunctionNameAndTypeArguments(
