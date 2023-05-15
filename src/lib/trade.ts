@@ -78,6 +78,53 @@ export class Trade extends Base {
     return signAndExecute(txb, this.provider);
   }
 
+  /**
+   * Swap without calling getCoinMetadata.
+   */
+  async swapFast(options: Trade.SwapOptions, decimalsA: number) {
+    const {
+      pools,
+      priceLimit,
+      coins,
+      address,
+      amount,
+      amountThreshold,
+      exactIn,
+      signAndExecute,
+    } = options;
+    const contract = await this.contract.getConfig();
+    const [coinTypeA, coinTypeB] = coins;
+    const bigAmountA = this.math.scaleUp(amount, decimalsA);
+    const coinIds = await this.coin.selectTradeCoins(address, coinTypeA, bigAmountA);
+    const { functionName, typeArguments } = this.getFunctionNameAndTypeArguments(
+      await Promise.all(pools.map((pool) => this.pool['getPoolTypeArguments'](pool))),
+      coinTypeA,
+      coinTypeB,
+    );
+
+    const txb = new TransactionBlock();
+    txb.moveCall({
+      target: `${contract.PackageId}::swap_router::${functionName}`,
+      typeArguments: typeArguments,
+      arguments: [
+        ...pools.map((pool) => txb.object(pool)),
+        txb.makeMoveVec({
+          objects: this.coin.convertTradeCoins(txb, coinIds, coinTypeA, bigAmountA),
+        }),
+        txb.pure(bigAmountA.toFixed(0), 'u64'),
+        txb.pure(new Decimal(amountThreshold).toFixed(0), 'u64'),
+        ...priceLimit.map((price) => txb.pure(price, 'u128')),
+        txb.pure(exactIn, 'bool'),
+        txb.object(address),
+        txb.pure(Date.now() + ONE_MINUTE * 3, 'u64'),
+        txb.object(SUI_CLOCK_OBJECT_ID),
+        txb.object(contract.Versioned),
+      ],
+    });
+
+    return signAndExecute(txb, this.provider);
+  }
+
   protected getFunctionNameAndTypeArguments(
     pools: Pool.Types[],
     coinTypeA: string,
