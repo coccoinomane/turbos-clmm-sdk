@@ -1,5 +1,12 @@
 
 
+## [1.0.2](https://github.com/coccoinomane/turbos-clmm-sdk/compare/1.0.1...1.0.2) (2023-05-15)
+
+
+### Features
+
+* swapFast function ([ce6750d](https://github.com/coccoinomane/turbos-clmm-sdk/commit/ce6750d9a0b75dd4a210528f5ef5dd0690d74d41))
+
 ## [1.0.1](https://github.com/coccoinomane/turbos-clmm-sdk/compare/1.0.0...1.0.0) (2023-05-13)
 
 

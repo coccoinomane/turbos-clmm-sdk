@@ -1,6 +1,6 @@
 {
   "name": "turbos-clmm-sdk-cocco",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Turbos finance sdk - coccoinomane's fork",
   "main": "index.js",
   "type": "module",
